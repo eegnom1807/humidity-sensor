@@ -19,7 +19,7 @@ def get_all_sensors():
 
 @sensors_bp.route("/sensors", methods=["POST"])
 def add_sensor():
-    request_data = request.json
+    request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
     
@@ -62,7 +62,7 @@ def update_sensor(id):
     if sensor is None:
         return {"message":  "Sensor not found"}, 404
     
-    request_data = request.json
+    request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
     
@@ -83,8 +83,9 @@ def update_sensor(id):
     except SQLAlchemyError:
         db.session.rollback()
         return {"message": "Internal server error"}, 500
-    
-    return {}, 204
+
+    message = {"message": "Sensor updated", "data": sensor_schema.dump(sensor)}
+    return jsonify(message), 200
 
 @sensors_bp.route("/sensors/<int:id>", methods=["DELETE"])
 def delete_sensor(id):
@@ -102,5 +103,5 @@ def delete_sensor(id):
     except SQLAlchemyError:
         db.session.rollback()
         return {"message": "Internal server error"}, 500
-    
-    return {}, 200
+
+    return {"message": "Sensor deleted"}, 200
