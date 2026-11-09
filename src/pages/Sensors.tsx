@@ -62,7 +62,7 @@ export function Sensors() {
   }, [])
 
   const getPlantName = (plantId: number): string => {
-    const plant = plants.find((p) => Number(p.id) === plantId)
+    const plant = plants.find((p) => p.id === plantId)
     return plant?.name ?? String(plantId)
   }
 

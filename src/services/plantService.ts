@@ -29,23 +29,23 @@ export const plantService = {
   },
 
   // Update plant
-  update: async (id: string, data: PlantRequestUpdate): Promise<Plant> => {
-    const response = await api.put<Plant>(`/plants/${id}`, data)
-    return response.data
+  update: async (id: number, data: PlantRequestUpdate): Promise<Plant> => {
+    const response = await api.put<PlantResponse>(`/plants/${id}`, data)
+    return response.data.data
   },
 
   // Delete plant
-  delete: async (id: string): Promise<void> => {
+  delete: async (id: number): Promise<void> => {
     await api.delete(`/plants/${id}`)
   },
 
   // Regar una planta
-  water: async (id: string): Promise<void> => {
+  water: async (id: number): Promise<void> => {
     await api.post(`/plants/${id}/water`)
   },
 
   // upload image plant
-  uploadImage: async (id: string, formData: FormData): Promise<void> => {
+  uploadImage: async (id: number, formData: FormData): Promise<void> => {
     await api.post(`/plants/${id}/image`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     })
