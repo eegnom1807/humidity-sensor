@@ -1,5 +1,5 @@
 export interface Plant {
-  id: string;
+  id: number;
   name: string;
   image_url: string;
   active: boolean;
@@ -7,7 +7,7 @@ export interface Plant {
 }
 
 export interface PlantRequest {
-  id?: string;
+  id?: number;
   name: string;
   image_url: string;
 }
