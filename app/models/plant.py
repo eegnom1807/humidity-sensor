@@ -28,6 +28,7 @@ class Plant(db.Model):
     sensor = db.relationship(
         "Sensor",
         back_populates="plant",
+        uselist=False,
         cascade="all, delete-orphan"
     )
 
@@ -37,7 +38,7 @@ class Plant(db.Model):
     
     @classmethod
     def get_by_id(cls, id):
-        return cls.query.get(id)
+        return db.session.get(cls, id)
     
 @event.listens_for(Plant, "after_delete")
 def delete_plant_image(mapper, connection, target):

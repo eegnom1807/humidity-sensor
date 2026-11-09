@@ -1,11 +1,14 @@
 import os
-from flask import request, abort
+from flask import request, current_app
+from werkzeug.security import safe_join
 from datetime import timezone, timedelta
 from functools import wraps
 
 
 def get_date(date):
-    time_zone = timezone(timedelta(hours=-6))
+    # dates are stored in UTC; shown in the offset from .env (default UTC-6)
+    offset = float(os.getenv("UTC_OFFSET_HOURS", -6))
+    time_zone = timezone(timedelta(hours=offset))
     new_date = date.replace(tzinfo=timezone.utc).astimezone(time_zone)
 
     return new_date.strftime("%Y-%m-%d %H:%M:%S")
@@ -19,17 +22,16 @@ def allowed_file(filename):
     )
 
 def delete_file_if_exists(relative_path):
-    upload_folder = os.getenv("UPLOAD_FOLDER", "uploads")
-    if not relative_path or not relative_path.startswith("/" + upload_folder + "/"):
+    # image_url always looks like "/uploads/<file>" (the public route),
+    # while the real folder on disk comes from app config
+    url_prefix = "/uploads/"
+    if not relative_path or not relative_path.startswith(url_prefix):
         return
 
-    filename = relative_path.replace("/" + upload_folder + "/", "", 1)
-    full_path = os.path.join(
-        os.getenv("UPLOAD_FOLDER", "uploads"),
-        filename
-    )
+    filename = relative_path[len(url_prefix):]
+    full_path = safe_join(current_app.config["UPLOAD_FOLDER"], filename)
 
-    if os.path.exists(full_path):
+    if full_path and os.path.isfile(full_path):
         os.remove(full_path)
 
 def require_api_key(f):

@@ -12,6 +12,9 @@ class HumidityReading(db.Model):
             ["sensors.id"],
             name="fk_readings_sensor_id"
         ),
+        # in SQLite the index also covers the rowid (id),
+        # so max(id) per sensor is resolved from the index
+        db.Index("ix_humidity_readings_sensor_id", "sensor_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -29,7 +32,9 @@ class HumidityReading(db.Model):
         subquery = (
             db.session.query(
                 HumidityReading.sensor_id,
-                func.max(HumidityReading.created_at).label("last_reading")
+                # max(id) instead of max(created_at): created_at has
+                # 1-second resolution and ties would duplicate rows
+                func.max(HumidityReading.id).label("last_id")
             )
             .group_by(HumidityReading.sensor_id)
             .subquery()
@@ -52,8 +57,7 @@ class HumidityReading(db.Model):
             )
             .outerjoin(
                 HumidityReading,
-                (HumidityReading.sensor_id == Sensor.id) &
-                (HumidityReading.created_at == subquery.c.last_reading)
+                HumidityReading.id == subquery.c.last_id
             )
             .order_by(Plant.name)
         )

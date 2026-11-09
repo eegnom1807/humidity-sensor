@@ -11,7 +11,7 @@ readings_bp = Blueprint("readings", __name__)
 @readings_bp.route("/readings", methods=["POST"])
 @require_api_key
 def create_reading():
-    request_data = request.json
+    request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
     
@@ -22,7 +22,7 @@ def create_reading():
 
     sensor = Sensor.get_by_pin(validated_data["pin"])
     if not sensor:
-        return {"error": "Sensor not found"}, 404
+        return {"message": "Sensor not found"}, 404
 
     reading = HumidityReading(
         sensor_id=sensor.id,
