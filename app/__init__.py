@@ -22,7 +22,11 @@ def create_app():
         os.getenv("UPLOAD_FOLDER", "uploads")
     )
     max_mb = int(os.getenv("MAX_CONTENT_LENGTH_MB", 5))
-    app.config["MAX_CONTENT_LENGTH_MB"] = max_mb * 1024 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = max_mb * 1024 * 1024
+
+    @app.errorhandler(413)
+    def file_too_large(e):
+        return {"message": f"File too large. Max size is {max_mb}MB"}, 413
 
     #initialize DB and migrations
     db.init_app(app)

@@ -32,7 +32,7 @@ def add_plant():
     
     plant = Plant(
         name=validated_data["name"],
-        image_url=validated_data["image_url"]
+        image_url=validated_data.get("image_url") or None
     )
 
     try:
@@ -73,11 +73,14 @@ def update_plant(id):
     except ValidationError as err:
         return {"message": err.messages}, 422
     
-    if plant.image_url != validated_data["image_url"]:
+    # image is managed by POST /plants/<id>/image;
+    # a missing or empty image_url keeps the current image
+    new_image_url = validated_data.get("image_url")
+    if new_image_url and new_image_url != plant.image_url:
         delete_file_if_exists(plant.image_url)
-    
+        plant.image_url = new_image_url
+
     plant.name = validated_data["name"]
-    plant.image_url = validated_data["image_url"]
 
     try:
         db.session.commit()
@@ -125,10 +128,7 @@ def upload_image(id):
 
     if not allowed_file(file.filename):
         return {"message":  "Invalid file type"}, 400
-    
-    if request.content_length is not None and request.content_length > current_app.config["MAX_CONTENT_LENGTH_MB"]:
-        return {"message": "File too large. Max size is 5MB"}, 413
-    
+
     delete_file_if_exists(plant.image_url)
 
     filename = secure_filename(file.filename)

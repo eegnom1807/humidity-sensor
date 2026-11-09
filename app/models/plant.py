@@ -28,6 +28,7 @@ class Plant(db.Model):
     sensor = db.relationship(
         "Sensor",
         back_populates="plant",
+        uselist=False,
         cascade="all, delete-orphan"
     )
 

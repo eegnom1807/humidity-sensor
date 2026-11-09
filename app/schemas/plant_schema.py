@@ -10,8 +10,9 @@ class PlantSchema(ma.Schema):
         validate=validate.Length(min=3, max=100)
     )
     image_url = fields.Str(
-        required=True,
-        validate=validate.Length(min=0, max=255)
+        required=False,
+        allow_none=True,
+        validate=validate.Length(max=255)
     )
     active = fields.Bool(required=False)
     updated_at = fields.Method("format_updated_at")
