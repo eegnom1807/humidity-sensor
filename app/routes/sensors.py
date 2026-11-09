@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request
 from marshmallow import ValidationError
 from ..schemas.sensor_schema import sensor_schema, sensors_schema
 from ..models import Sensor
-from ..utils import get_date
 from ..utils.errors_handler import handle_db_error
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from ..db import db

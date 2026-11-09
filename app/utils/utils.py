@@ -6,7 +6,9 @@ from functools import wraps
 
 
 def get_date(date):
-    time_zone = timezone(timedelta(hours=-6))
+    # dates are stored in UTC; shown in the offset from .env (default UTC-6)
+    offset = float(os.getenv("UTC_OFFSET_HOURS", -6))
+    time_zone = timezone(timedelta(hours=offset))
     new_date = date.replace(tzinfo=timezone.utc).astimezone(time_zone)
 
     return new_date.strftime("%Y-%m-%d %H:%M:%S")
