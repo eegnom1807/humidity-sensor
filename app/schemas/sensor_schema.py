@@ -18,7 +18,7 @@ class SensorSchema(ma.Schema):
 
     @validates("plant_id")
     def validate_plant_exists(self, value, **kwargs):
-        if not Plant.query.get(value):
+        if not Plant.get_by_id(value):
             raise ValidationError("Plant does not exist")
 
 sensor_schema = SensorSchema()

@@ -41,7 +41,7 @@ class Sensor(db.Model):
     
     @classmethod
     def get_by_id(cls, id):
-        return cls.query.get(id)
+        return db.session.get(cls, id)
     
     @classmethod
     def get_by_pin(cls, pin):

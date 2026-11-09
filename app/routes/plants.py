@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from ..utils.errors_handler import handle_db_error
 from ..db import db
 import os
+import time
 
 plants_bp = Blueprint("plants", __name__)
 
@@ -21,7 +22,7 @@ def get_all_plants():
 
 @plants_bp.route("/plants", methods=["POST"])
 def add_plant():
-    request_data = request.json
+    request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
     
@@ -32,7 +33,8 @@ def add_plant():
     
     plant = Plant(
         name=validated_data["name"],
-        image_url=validated_data["image_url"]
+        # frontend expects "" (not null) when there is no image
+        image_url=validated_data.get("image_url") or ""
     )
 
     try:
@@ -64,7 +66,7 @@ def update_plant(id):
     if plant is None:
         return {"message":  "Plant not found"}, 404
     
-    request_data = request.json
+    request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
 
@@ -73,11 +75,14 @@ def update_plant(id):
     except ValidationError as err:
         return {"message": err.messages}, 422
     
-    if plant.image_url != validated_data["image_url"]:
+    # image is managed by POST /plants/<id>/image;
+    # a missing or empty image_url keeps the current image
+    new_image_url = validated_data.get("image_url")
+    if new_image_url and new_image_url != plant.image_url:
         delete_file_if_exists(plant.image_url)
-    
+        plant.image_url = new_image_url
+
     plant.name = validated_data["name"]
-    plant.image_url = validated_data["image_url"]
 
     try:
         db.session.commit()
@@ -88,8 +93,9 @@ def update_plant(id):
     except SQLAlchemyError:
         db.session.rollback()
         return {"message": "Internal server error"}, 500
-    
-    return {}, 204
+
+    message = {"message": "Plant updated", "data": plant_schema.dump(plant)}
+    return jsonify(message), 200
 
 @plants_bp.route("/plants/<int:id>", methods=["DELETE"])
 def delete_plant(id):
@@ -107,8 +113,8 @@ def delete_plant(id):
     except SQLAlchemyError:
         db.session.rollback()
         return {"message": "Internal server error"}, 500
-    
-    return {}, 200
+
+    return {"message": "Plant deleted"}, 200
 
 @plants_bp.route("/plants/<int:id>/image", methods=["POST"])
 def upload_image(id):
@@ -125,10 +131,7 @@ def upload_image(id):
 
     if not allowed_file(file.filename):
         return {"message":  "Invalid file type"}, 400
-    
-    if request.content_length is not None and request.content_length > current_app.config["MAX_CONTENT_LENGTH_MB"]:
-        return {"message": "File too large. Max size is 5MB"}, 413
-    
+
     delete_file_if_exists(plant.image_url)
 
     filename = secure_filename(file.filename)
@@ -140,7 +143,8 @@ def upload_image(id):
     )
 
     os.makedirs(upload_dir, exist_ok=True)
-    final_filename = f"{plant.id}.{ext}"
+    # timestamp in the name so browsers don't show a cached old image
+    final_filename = f"{plant.id}-{int(time.time())}.{ext}"
     file_path = os.path.join(upload_dir, final_filename)
     file.save(file_path)
 
@@ -149,5 +153,6 @@ def upload_image(id):
 
     return jsonify({
         "message": "Uploaded file",
-        "image_url": plant.image_url
-    })
+        "image_url": plant.image_url,
+        "data": plant_schema.dump(plant)
+    }), 200

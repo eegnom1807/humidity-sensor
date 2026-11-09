@@ -13,6 +13,6 @@ class DashboardSchema(ma.Schema):
     last_reading = fields.Method("format_last_reading")
 
     def format_last_reading(self, obj):
-        return get_date(obj["last_reading"]) if obj["last_reading"] != None else ""
+        return get_date(obj["last_reading"]) if obj["last_reading"] is not None else ""
 
-dashoboard_schema = DashboardSchema(many=True)
+dashboard_schema = DashboardSchema(many=True)
