@@ -1,28 +1,23 @@
-from flask import Blueprint, request
+from flask import Blueprint
 from ..models import HumidityReading, Sensor
-from ..utils import require_api_key
-from marshmallow import ValidationError
+from ..utils import require_api_key, load_json
+from ..errors import ApiError
 from ..schemas.reading_schema import reading_schema
 from ..db import db
 
+# errors are turned into JSON in errors.py:
+# ApiError -> its status, ValidationError -> 422
 readings_bp = Blueprint("readings", __name__)
 
 
 @readings_bp.post("/readings")
 @require_api_key
 def create_reading():
-    request_data = request.get_json(silent=True)
-    if not request_data:
-        return {"message": "No input data"}, 400
-
-    try:
-        validated_data = reading_schema.load(request_data)
-    except ValidationError as err:
-        return {"message": err.messages}, 422
+    validated_data = load_json(reading_schema)
 
     sensor = Sensor.get_by_pin(validated_data["pin"])
     if not sensor:
-        return {"message": "Sensor not found"}, 404
+        raise ApiError("Sensor not found", 404)
 
     reading = HumidityReading(
         sensor_id=sensor.id,

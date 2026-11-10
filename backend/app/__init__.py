@@ -1,6 +1,6 @@
 from flask import Flask, send_from_directory
-from werkzeug.exceptions import HTTPException
 from .db import db, migrate
+from .errors import register_error_handlers
 from .routes import register_routes
 from . import models
 from flask_cors import CORS
@@ -27,10 +27,8 @@ def create_app():
     def file_too_large(e):
         return {"message": f"File too large. Max size is {max_mb}MB"}, 413
 
-    # any other HTTP error (404, 405, ...) as JSON instead of HTML
-    @app.errorhandler(HTTPException)
-    def http_error(e):
-        return {"message": e.description}, e.code
+    # global error handlers, always JSON (see errors.py)
+    register_error_handlers(app)
 
     #initialize DB and migrations
     db.init_app(app)
