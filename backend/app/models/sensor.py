@@ -19,30 +19,29 @@ class Sensor(db.Model):
     pin = db.Column(db.String(10), nullable=False)
     plant_id = db.Column(db.Integer, nullable=False)
     created_at = db.Column(
-        db.DateTime, 
+        db.DateTime,
         server_default=func.now()
     )
     updated_at = db.Column(
-        db.DateTime, 
-        server_default=func.now(), 
+        db.DateTime,
+        server_default=func.now(),
         onupdate=func.now()
     )
 
     plant = db.relationship("Plant", back_populates="sensor")
     readings = db.relationship(
         "HumidityReading",
-        back_populates="sensor",
         cascade="all, delete-orphan"
     )
 
     @classmethod
     def get_all(cls):
         return cls.query.all()
-    
+
     @classmethod
     def get_by_id(cls, id):
         return db.session.get(cls, id)
-    
+
     @classmethod
     def get_by_pin(cls, pin):
         return cls.query.filter_by(pin=pin).first()

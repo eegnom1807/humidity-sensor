@@ -1,5 +1,6 @@
 from sqlalchemy.sql import func
-from ..models import Plant, Sensor
+from .plant import Plant
+from .sensor import Sensor
 from ..db import db
 
 
@@ -24,8 +25,6 @@ class HumidityReading(db.Model):
         db.DateTime,
         server_default=func.now()
     )
-
-    sensor = db.relationship("Sensor", back_populates="readings")
 
     @classmethod
     def get_plants_readings(cls):
