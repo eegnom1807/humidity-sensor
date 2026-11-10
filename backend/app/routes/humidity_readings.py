@@ -8,7 +8,7 @@ from ..db import db
 readings_bp = Blueprint("readings", __name__)
 
 
-@readings_bp.route("/readings", methods=["POST"])
+@readings_bp.post("/readings")
 @require_api_key
 def create_reading():
     request_data = request.get_json(silent=True)

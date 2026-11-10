@@ -9,14 +9,14 @@ from ..db import db
 sensors_bp = Blueprint("sensors", __name__)
 
 
-@sensors_bp.route("/sensors", methods=["GET"])
+@sensors_bp.get("/sensors")
 def get_all_sensors():
     sensors = Sensor.get_all()
 
     message = {"data": sensors_schema.dump(sensors)}
     return message, 200
 
-@sensors_bp.route("/sensors", methods=["POST"])
+@sensors_bp.post("/sensors")
 def add_sensor():
     request_data = request.get_json(silent=True)
     if not request_data:
@@ -42,7 +42,7 @@ def add_sensor():
     message = {"message": "Sensor created", "data": sensor_schema.dump(sensor)}
     return message, 201
 
-@sensors_bp.route("/sensors/<int:id>", methods=["GET"])
+@sensors_bp.get("/sensors/<int:id>")
 def get_sensor_by_id(id):
     sensor = Sensor.get_by_id(id)
     if sensor is None:
@@ -51,7 +51,7 @@ def get_sensor_by_id(id):
     message = {"data": sensor_schema.dump(sensor)}
     return message, 200
 
-@sensors_bp.route("/sensors/<int:id>", methods=["PUT"])
+@sensors_bp.put("/sensors/<int:id>")
 def update_sensor(id):
     sensor = Sensor.get_by_id(id)
     if sensor is None:
@@ -78,7 +78,7 @@ def update_sensor(id):
     message = {"message": "Sensor updated", "data": sensor_schema.dump(sensor)}
     return message, 200
 
-@sensors_bp.route("/sensors/<int:id>", methods=["DELETE"])
+@sensors_bp.delete("/sensors/<int:id>")
 def delete_sensor(id):
     sensor = Sensor.get_by_id(id)
     if sensor is None:

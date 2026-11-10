@@ -13,14 +13,14 @@ import time
 plants_bp = Blueprint("plants", __name__)
 
 
-@plants_bp.route("/plants", methods=["GET"])
+@plants_bp.get("/plants")
 def get_all_plants():
     plants = Plant.get_all()
 
     message = {"data": plants_schema.dump(plants)}
     return message, 200
 
-@plants_bp.route("/plants", methods=["POST"])
+@plants_bp.post("/plants")
 def add_plant():
     request_data = request.get_json(silent=True)
     if not request_data:
@@ -47,7 +47,7 @@ def add_plant():
     message = {"message": "Plant created", "data": plant_schema.dump(plant)}
     return message, 201
 
-@plants_bp.route("/plants/<int:id>", methods=["GET"])
+@plants_bp.get("/plants/<int:id>")
 def get_plant_by_id(id):
     plant = Plant.get_by_id(id)
     if plant is None:
@@ -56,7 +56,7 @@ def get_plant_by_id(id):
     message = {"data": plant_schema.dump(plant)}
     return message, 200
 
-@plants_bp.route("/plants/<int:id>", methods=["PUT"])
+@plants_bp.put("/plants/<int:id>")
 def update_plant(id):
     plant = Plant.get_by_id(id)
     if plant is None:
@@ -89,7 +89,7 @@ def update_plant(id):
     message = {"message": "Plant updated", "data": plant_schema.dump(plant)}
     return message, 200
 
-@plants_bp.route("/plants/<int:id>", methods=["DELETE"])
+@plants_bp.delete("/plants/<int:id>")
 def delete_plant(id):
     plant = Plant.get_by_id(id)
     if plant is None:
@@ -103,7 +103,7 @@ def delete_plant(id):
 
     return {"message": "Plant deleted"}, 200
 
-@plants_bp.route("/plants/<int:id>/image", methods=["POST"])
+@plants_bp.post("/plants/<int:id>/image")
 def upload_image(id):
     plant = Plant.get_by_id(id)
     if plant is None:
