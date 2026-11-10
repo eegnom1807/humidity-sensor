@@ -25,12 +25,12 @@ def add_plant():
     request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
-    
+
     try:
         validated_data = plant_schema.load(request_data)
     except ValidationError as err:
         return {"message": err.messages}, 422
-    
+
     plant = Plant(
         name=validated_data["name"],
         # frontend expects "" (not null) when there is no image
@@ -43,7 +43,7 @@ def add_plant():
     except IntegrityError as e:
         db.session.rollback()
         return handle_db_error(e)
-    
+
     message = {"message": "Plant created", "data": plant_schema.dump(plant)}
     return message, 201
 
@@ -51,7 +51,7 @@ def add_plant():
 def get_plant_by_id(id):
     plant = Plant.get_by_id(id)
     if plant is None:
-        return {"message":  "Plant not found"}, 404
+        return {"message": "Plant not found"}, 404
 
     message = {"data": plant_schema.dump(plant)}
     return message, 200
@@ -60,8 +60,8 @@ def get_plant_by_id(id):
 def update_plant(id):
     plant = Plant.get_by_id(id)
     if plant is None:
-        return {"message":  "Plant not found"}, 404
-    
+        return {"message": "Plant not found"}, 404
+
     request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
@@ -70,7 +70,7 @@ def update_plant(id):
         validated_data = plant_schema.load(request_data)
     except ValidationError as err:
         return {"message": err.messages}, 422
-    
+
     # image is managed by POST /plants/<id>/image;
     # a missing or empty image_url keeps the current image
     new_image_url = validated_data.get("image_url")
@@ -93,7 +93,7 @@ def update_plant(id):
 def delete_plant(id):
     plant = Plant.get_by_id(id)
     if plant is None:
-        return {"message":  "Plant not found"}, 404
+        return {"message": "Plant not found"}, 404
 
     # delete the image only after the commit succeeds
     image_url = plant.image_url
@@ -107,17 +107,17 @@ def delete_plant(id):
 def upload_image(id):
     plant = Plant.get_by_id(id)
     if plant is None:
-        return {"message":  "Plant not found"}, 404
+        return {"message": "Plant not found"}, 404
 
     if "image_url" not in request.files:
-        return {"message":  "Photo file is required"}, 400
+        return {"message": "Photo file is required"}, 400
 
     file = request.files["image_url"]
     if file.filename == "":
-        return {"message":  "Empty filename"}, 400
+        return {"message": "Empty filename"}, 400
 
     if not allowed_file(file.filename):
-        return {"message":  "Invalid file type"}, 400
+        return {"message": "Invalid file type"}, 400
 
     delete_file_if_exists(plant.image_url)
 

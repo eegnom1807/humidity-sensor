@@ -21,12 +21,12 @@ def add_sensor():
     request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
-    
+
     try:
         validated_data = sensor_schema.load(request_data)
     except ValidationError as err:
         return {"message": err.messages}, 422
-    
+
     sensor = Sensor(
         pin=validated_data["pin"],
         plant_id=validated_data["plant_id"]
@@ -38,7 +38,7 @@ def add_sensor():
     except IntegrityError as e:
         db.session.rollback()
         return handle_db_error(e)
-    
+
     message = {"message": "Sensor created", "data": sensor_schema.dump(sensor)}
     return message, 201
 
@@ -46,8 +46,8 @@ def add_sensor():
 def get_sensor_by_id(id):
     sensor = Sensor.get_by_id(id)
     if sensor is None:
-        return {"message":  "Sensor not found"}, 404
-    
+        return {"message": "Sensor not found"}, 404
+
     message = {"data": sensor_schema.dump(sensor)}
     return message, 200
 
@@ -55,12 +55,12 @@ def get_sensor_by_id(id):
 def update_sensor(id):
     sensor = Sensor.get_by_id(id)
     if sensor is None:
-        return {"message":  "Sensor not found"}, 404
-    
+        return {"message": "Sensor not found"}, 404
+
     request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
-    
+
     try:
         validated_data = sensor_schema.load(request_data)
     except ValidationError as err:
@@ -82,7 +82,7 @@ def update_sensor(id):
 def delete_sensor(id):
     sensor = Sensor.get_by_id(id)
     if sensor is None:
-        return {"message":  "Sensor not found"}, 404
+        return {"message": "Sensor not found"}, 404
 
     db.session.delete(sensor)
     db.session.commit()

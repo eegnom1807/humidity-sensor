@@ -14,7 +14,7 @@ def create_reading():
     request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
-    
+
     try:
         validated_data = reading_schema.load(request_data)
     except ValidationError as err:
@@ -32,7 +32,7 @@ def create_reading():
     db.session.add(reading)
     # active plant
     sensor.plant.active = True
-    
+
     db.session.commit()
 
     message = {"message": "Reading created", "data": reading_schema.dump(reading)}
