@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from ..models import HumidityReading, Sensor
 from ..utils import require_api_key
 from marshmallow import ValidationError
@@ -8,13 +8,13 @@ from ..db import db
 readings_bp = Blueprint("readings", __name__)
 
 
-@readings_bp.route("/readings", methods=["POST"])
+@readings_bp.post("/readings")
 @require_api_key
 def create_reading():
     request_data = request.get_json(silent=True)
     if not request_data:
         return {"message": "No input data"}, 400
-    
+
     try:
         validated_data = reading_schema.load(request_data)
     except ValidationError as err:
@@ -31,10 +31,9 @@ def create_reading():
 
     db.session.add(reading)
     # active plant
-    if not sensor.plant.active:
-        sensor.plant.active = True
-    
+    sensor.plant.active = True
+
     db.session.commit()
 
     message = {"message": "Reading created", "data": reading_schema.dump(reading)}
-    return jsonify(message), 201
+    return message, 201
