@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint
 from ..models import HumidityReading
 from ..schemas.dashboard_schema import dashboard_schema
 
@@ -10,4 +10,4 @@ def plants_dashboard():
     data = HumidityReading.get_plants_readings()
     message = {"data": dashboard_schema.dump(data)}
 
-    return jsonify(message), 200
+    return message, 200

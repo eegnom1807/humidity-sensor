@@ -1,10 +1,10 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, request, current_app
 from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
 from ..schemas.plant_schema import plant_schema, plants_schema
 from ..models import Plant
 from ..utils import allowed_file, delete_file_if_exists
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 from ..utils.errors_handler import handle_db_error
 from ..db import db
 import os
@@ -18,7 +18,7 @@ def get_all_plants():
     plants = Plant.get_all()
 
     message = {"data": plants_schema.dump(plants)}
-    return jsonify(message), 200
+    return message, 200
 
 @plants_bp.route("/plants", methods=["POST"])
 def add_plant():
@@ -44,12 +44,8 @@ def add_plant():
         db.session.rollback()
         return handle_db_error(e)
     
-    except SQLAlchemyError:
-        db.session.rollback()
-        return {"message": "Internal server error"}, 500
-    
     message = {"message": "Plant created", "data": plant_schema.dump(plant)}
-    return jsonify(message), 201
+    return message, 201
 
 @plants_bp.route("/plants/<int:id>", methods=["GET"])
 def get_plant_by_id(id):
@@ -58,7 +54,7 @@ def get_plant_by_id(id):
         return {"message":  "Plant not found"}, 404
 
     message = {"data": plant_schema.dump(plant)}
-    return jsonify(message), 200
+    return message, 200
 
 @plants_bp.route("/plants/<int:id>", methods=["PUT"])
 def update_plant(id):
@@ -89,13 +85,9 @@ def update_plant(id):
     except IntegrityError as e:
         db.session.rollback()
         return handle_db_error(e)
-    
-    except SQLAlchemyError:
-        db.session.rollback()
-        return {"message": "Internal server error"}, 500
 
     message = {"message": "Plant updated", "data": plant_schema.dump(plant)}
-    return jsonify(message), 200
+    return message, 200
 
 @plants_bp.route("/plants/<int:id>", methods=["DELETE"])
 def delete_plant(id):
@@ -103,16 +95,11 @@ def delete_plant(id):
     if plant is None:
         return {"message":  "Plant not found"}, 404
 
-    try:
-        db.session.delete(plant)
-        db.session.commit()
-    except IntegrityError as e:
-        db.session.rollback()
-        return handle_db_error(e)
-    
-    except SQLAlchemyError:
-        db.session.rollback()
-        return {"message": "Internal server error"}, 500
+    # delete the image only after the commit succeeds
+    image_url = plant.image_url
+    db.session.delete(plant)
+    db.session.commit()
+    delete_file_if_exists(image_url)
 
     return {"message": "Plant deleted"}, 200
 
@@ -151,8 +138,7 @@ def upload_image(id):
     plant.image_url = f"/uploads/plants/{final_filename}"
     db.session.commit()
 
-    return jsonify({
+    return {
         "message": "Uploaded file",
-        "image_url": plant.image_url,
         "data": plant_schema.dump(plant)
-    }), 200
+    }, 200
