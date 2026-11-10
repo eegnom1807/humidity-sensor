@@ -14,6 +14,7 @@ cd backend
 python3 -m venv venv
 venv/bin/pip install -r requirements.txt
 cp env.example .env        # ajustar valores
+venv/bin/flask db init
 venv/bin/flask db upgrade  # crear o actualizar la base
 venv/bin/python run.py
 ```
