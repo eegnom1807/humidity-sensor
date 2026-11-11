@@ -4,7 +4,6 @@ from .errors import register_error_handlers
 from .routes import register_routes
 from . import models
 from flask_cors import CORS
-from .extensions import ma
 import os
 
 
@@ -33,9 +32,6 @@ def create_app():
     #initialize DB and migrations
     db.init_app(app)
     migrate.init_app(app, db)
-
-    #init Marshmallow for validation
-    ma.init_app(app)
 
     # cors config
     origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
