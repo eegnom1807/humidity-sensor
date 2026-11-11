@@ -1,15 +1,15 @@
 from flask import Blueprint, request, current_app
-from marshmallow import ValidationError
 from werkzeug.utils import secure_filename
 from ..schemas.plant_schema import plant_schema, plants_schema
 from ..models import Plant
-from ..utils import allowed_file, delete_file_if_exists
-from sqlalchemy.exc import IntegrityError
-from ..utils.errors_handler import handle_db_error
+from ..utils import allowed_file, delete_file_if_exists, load_json, get_or_404
+from ..errors import ApiError
 from ..db import db
 import os
 import time
 
+# errors are turned into JSON in errors.py:
+# ApiError -> its status, ValidationError -> 422, IntegrityError -> 409/400
 plants_bp = Blueprint("plants", __name__)
 
 
@@ -22,14 +22,7 @@ def get_all_plants():
 
 @plants_bp.post("/plants")
 def add_plant():
-    request_data = request.get_json(silent=True)
-    if not request_data:
-        return {"message": "No input data"}, 400
-
-    try:
-        validated_data = plant_schema.load(request_data)
-    except ValidationError as err:
-        return {"message": err.messages}, 422
+    validated_data = load_json(plant_schema)
 
     plant = Plant(
         name=validated_data["name"],
@@ -37,39 +30,23 @@ def add_plant():
         image_url=validated_data.get("image_url") or ""
     )
 
-    try:
-        db.session.add(plant)
-        db.session.commit()
-    except IntegrityError as e:
-        db.session.rollback()
-        return handle_db_error(e)
+    db.session.add(plant)
+    db.session.commit()
 
     message = {"message": "Plant created", "data": plant_schema.dump(plant)}
     return message, 201
 
 @plants_bp.get("/plants/<int:id>")
 def get_plant_by_id(id):
-    plant = Plant.get_by_id(id)
-    if plant is None:
-        return {"message": "Plant not found"}, 404
+    plant = get_or_404(Plant, id, "Plant not found")
 
     message = {"data": plant_schema.dump(plant)}
     return message, 200
 
 @plants_bp.put("/plants/<int:id>")
 def update_plant(id):
-    plant = Plant.get_by_id(id)
-    if plant is None:
-        return {"message": "Plant not found"}, 404
-
-    request_data = request.get_json(silent=True)
-    if not request_data:
-        return {"message": "No input data"}, 400
-
-    try:
-        validated_data = plant_schema.load(request_data)
-    except ValidationError as err:
-        return {"message": err.messages}, 422
+    plant = get_or_404(Plant, id, "Plant not found")
+    validated_data = load_json(plant_schema)
 
     # image is managed by POST /plants/<id>/image;
     # a missing or empty image_url keeps the current image
@@ -79,21 +56,14 @@ def update_plant(id):
         plant.image_url = new_image_url
 
     plant.name = validated_data["name"]
-
-    try:
-        db.session.commit()
-    except IntegrityError as e:
-        db.session.rollback()
-        return handle_db_error(e)
+    db.session.commit()
 
     message = {"message": "Plant updated", "data": plant_schema.dump(plant)}
     return message, 200
 
 @plants_bp.delete("/plants/<int:id>")
 def delete_plant(id):
-    plant = Plant.get_by_id(id)
-    if plant is None:
-        return {"message": "Plant not found"}, 404
+    plant = get_or_404(Plant, id, "Plant not found")
 
     # delete the image only after the commit succeeds
     image_url = plant.image_url
@@ -105,19 +75,17 @@ def delete_plant(id):
 
 @plants_bp.post("/plants/<int:id>/image")
 def upload_image(id):
-    plant = Plant.get_by_id(id)
-    if plant is None:
-        return {"message": "Plant not found"}, 404
+    plant = get_or_404(Plant, id, "Plant not found")
 
     if "image_url" not in request.files:
-        return {"message": "Photo file is required"}, 400
+        raise ApiError("Photo file is required", 400)
 
     file = request.files["image_url"]
     if file.filename == "":
-        return {"message": "Empty filename"}, 400
+        raise ApiError("Empty filename", 400)
 
     if not allowed_file(file.filename):
-        return {"message": "Invalid file type"}, 400
+        raise ApiError("Invalid file type", 400)
 
     delete_file_if_exists(plant.image_url)
 

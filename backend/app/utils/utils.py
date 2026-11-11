@@ -3,6 +3,8 @@ from flask import request, current_app
 from werkzeug.security import safe_join
 from datetime import timezone, timedelta
 from functools import wraps
+from ..db import db
+from ..errors import ApiError
 
 
 def get_date(date):
@@ -39,8 +41,24 @@ def require_api_key(f):
     def wrapper(*args, **kwargs):
         api_key = request.headers.get("X-API-KEY")
         if not api_key or api_key != os.getenv("API_KEY"):
-            return {"message": "Invalid API key"}, 401
+            raise ApiError("Invalid API key", 401)
         
         return f(*args, **kwargs)
     
     return wrapper
+
+def load_json(schema):
+    data = request.get_json(silent=True)
+    if not data:
+        # 400: empty body or not JSON
+        raise ApiError("No input data", 400)
+
+    # ValidationError -> 422 (handled in errors.py)
+    return schema.load(data)
+
+def get_or_404(model, id, message):
+    obj = db.session.get(model, id)
+    if obj is None:
+        raise ApiError(message, 404)
+
+    return obj

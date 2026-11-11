@@ -1,11 +1,11 @@
-from flask import Blueprint, request
-from marshmallow import ValidationError
+from flask import Blueprint
 from ..schemas.sensor_schema import sensor_schema, sensors_schema
 from ..models import Sensor
-from ..utils.errors_handler import handle_db_error
-from sqlalchemy.exc import IntegrityError
+from ..utils import load_json, get_or_404
 from ..db import db
 
+# errors are turned into JSON in errors.py:
+# ApiError -> its status, ValidationError -> 422, IntegrityError -> 409/400
 sensors_bp = Blueprint("sensors", __name__)
 
 
@@ -18,71 +18,41 @@ def get_all_sensors():
 
 @sensors_bp.post("/sensors")
 def add_sensor():
-    request_data = request.get_json(silent=True)
-    if not request_data:
-        return {"message": "No input data"}, 400
-
-    try:
-        validated_data = sensor_schema.load(request_data)
-    except ValidationError as err:
-        return {"message": err.messages}, 422
+    validated_data = load_json(sensor_schema)
 
     sensor = Sensor(
         pin=validated_data["pin"],
         plant_id=validated_data["plant_id"]
     )
 
-    try:
-        db.session.add(sensor)
-        db.session.commit()
-    except IntegrityError as e:
-        db.session.rollback()
-        return handle_db_error(e)
+    db.session.add(sensor)
+    db.session.commit()
 
     message = {"message": "Sensor created", "data": sensor_schema.dump(sensor)}
     return message, 201
 
 @sensors_bp.get("/sensors/<int:id>")
 def get_sensor_by_id(id):
-    sensor = Sensor.get_by_id(id)
-    if sensor is None:
-        return {"message": "Sensor not found"}, 404
+    sensor = get_or_404(Sensor, id, "Sensor not found")
 
     message = {"data": sensor_schema.dump(sensor)}
     return message, 200
 
 @sensors_bp.put("/sensors/<int:id>")
 def update_sensor(id):
-    sensor = Sensor.get_by_id(id)
-    if sensor is None:
-        return {"message": "Sensor not found"}, 404
-
-    request_data = request.get_json(silent=True)
-    if not request_data:
-        return {"message": "No input data"}, 400
-
-    try:
-        validated_data = sensor_schema.load(request_data)
-    except ValidationError as err:
-        return {"message": err.messages}, 422
+    sensor = get_or_404(Sensor, id, "Sensor not found")
+    validated_data = load_json(sensor_schema)
 
     sensor.pin = validated_data["pin"]
     sensor.plant_id = validated_data["plant_id"]
-
-    try:
-        db.session.commit()
-    except IntegrityError as e:
-        db.session.rollback()
-        return handle_db_error(e)
+    db.session.commit()
 
     message = {"message": "Sensor updated", "data": sensor_schema.dump(sensor)}
     return message, 200
 
 @sensors_bp.delete("/sensors/<int:id>")
 def delete_sensor(id):
-    sensor = Sensor.get_by_id(id)
-    if sensor is None:
-        return {"message": "Sensor not found"}, 404
+    sensor = get_or_404(Sensor, id, "Sensor not found")
 
     db.session.delete(sensor)
     db.session.commit()
