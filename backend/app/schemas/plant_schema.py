@@ -8,10 +8,8 @@ class PlantSchema(Schema):
         required=True,
         validate=validate.Length(min=3, max=100)
     )
-    image_url = fields.Str(
-        allow_none=True,
-        validate=validate.Length(max=255)
-    )
+    # changed only by POST /plants/<id>/image, not by the client
+    image_url = fields.Str(dump_only=True)
     # changed only by POST /readings, not by the client
     active = fields.Bool(dump_only=True)
     updated_at = fields.Method("format_updated_at")

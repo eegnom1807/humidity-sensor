@@ -39,9 +39,5 @@ class Sensor(db.Model):
         return cls.query.all()
 
     @classmethod
-    def get_by_id(cls, id):
-        return db.session.get(cls, id)
-
-    @classmethod
     def get_by_pin(cls, pin):
         return cls.query.filter_by(pin=pin).first()

@@ -28,15 +28,14 @@ class HumidityReading(db.Model):
 
     @classmethod
     def get_plants_readings(cls):
-        subquery = (
-            db.session.query(
-                HumidityReading.sensor_id,
-                # max(id) instead of max(created_at): created_at has
-                # 1-second resolution and ties would duplicate rows
-                func.max(HumidityReading.id).label("last_id")
-            )
-            .group_by(HumidityReading.sensor_id)
-            .subquery()
+        # id of the latest reading of the plant's sensor
+        # (max(id) instead of max(created_at): created_at has
+        # 1-second resolution and ties would duplicate rows)
+        latest_reading_id = (
+            db.session.query(func.max(cls.id))
+            .filter(cls.sensor_id == Sensor.id)
+            .correlate(Sensor)
+            .scalar_subquery()
         )
 
         query = (
@@ -45,19 +44,12 @@ class HumidityReading(db.Model):
                 Plant.name,
                 Plant.image_url,
                 Plant.active,
-                HumidityReading.humidity,
+                cls.humidity,
                 Sensor.pin,
-                HumidityReading.created_at.label("last_reading"),
+                cls.created_at.label("last_reading"),
             )
-            .outerjoin(Sensor, Sensor.plant_id == Plant.id)
-            .outerjoin(
-                subquery,
-                subquery.c.sensor_id == Sensor.id
-            )
-            .outerjoin(
-                HumidityReading,
-                HumidityReading.id == subquery.c.last_id
-            )
+            .outerjoin(Plant.sensor)
+            .outerjoin(cls, cls.id == latest_reading_id)
             .order_by(Plant.name)
         )
 

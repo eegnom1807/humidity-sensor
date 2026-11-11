@@ -9,12 +9,10 @@ export interface Plant {
 export interface PlantRequest {
   id?: number;
   name: string;
-  image_url: string;
 }
 
 export interface PlantRequestUpdate {
   name: string;
-  image_url: string;
 }
 
 export interface DashboardPlant {
