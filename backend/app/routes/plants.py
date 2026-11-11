@@ -1,5 +1,4 @@
 from flask import Blueprint, request, current_app
-from werkzeug.utils import secure_filename
 from ..schemas.plant_schema import plant_schema, plants_schema
 from ..models import Plant
 from ..utils import allowed_file, delete_file_if_exists, load_json, get_or_404
@@ -89,8 +88,8 @@ def upload_image(id):
 
     delete_file_if_exists(plant.image_url)
 
-    filename = secure_filename(file.filename)
-    ext = filename.rsplit(".", 1)[1].lower()
+    # the final name is built here, so only the (already validated) extension is used
+    ext = file.filename.rsplit(".", 1)[1].lower()
 
     upload_dir = os.path.join(
         current_app.config["UPLOAD_FOLDER"],
