@@ -23,11 +23,7 @@ def get_all_plants():
 def add_plant():
     validated_data = load_json(plant_schema)
 
-    plant = Plant(
-        name=validated_data["name"],
-        # frontend expects "" (not null) when there is no image
-        image_url=validated_data.get("image_url") or ""
-    )
+    plant = Plant(name=validated_data["name"])
 
     db.session.add(plant)
     db.session.commit()
@@ -46,13 +42,6 @@ def get_plant_by_id(id):
 def update_plant(id):
     plant = get_or_404(Plant, id, "Plant not found")
     validated_data = load_json(plant_schema)
-
-    # image is managed by POST /plants/<id>/image;
-    # a missing or empty image_url keeps the current image
-    new_image_url = validated_data.get("image_url")
-    if new_image_url and new_image_url != plant.image_url:
-        delete_file_if_exists(plant.image_url)
-        plant.image_url = new_image_url
 
     plant.name = validated_data["name"]
     db.session.commit()
@@ -76,17 +65,13 @@ def delete_plant(id):
 def upload_image(id):
     plant = get_or_404(Plant, id, "Plant not found")
 
-    if "image_url" not in request.files:
+    # an empty filename counts as no file
+    file = request.files.get("image_url")
+    if not file:
         raise ApiError("Photo file is required", 400)
-
-    file = request.files["image_url"]
-    if file.filename == "":
-        raise ApiError("Empty filename", 400)
 
     if not allowed_file(file.filename):
         raise ApiError("Invalid file type", 400)
-
-    delete_file_if_exists(plant.image_url)
 
     # the final name is built here, so only the (already validated) extension is used
     ext = file.filename.rsplit(".", 1)[1].lower()
@@ -102,8 +87,13 @@ def upload_image(id):
     file_path = os.path.join(upload_dir, final_filename)
     file.save(file_path)
 
+    old_image_url = plant.image_url
     plant.image_url = f"/uploads/plants/{final_filename}"
     db.session.commit()
+    # delete the old image only after the new one is saved and committed
+    # (same name if uploaded within the same second: it was overwritten)
+    if old_image_url != plant.image_url:
+        delete_file_if_exists(old_image_url)
 
     return {
         "message": "Uploaded file",

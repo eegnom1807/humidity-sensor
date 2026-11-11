@@ -66,8 +66,7 @@ export function Plants() {
         toastMessage("Planta creada", "success");
       } else if (data.id) {
         const new_data: PlantRequestUpdate = {
-          name: data.name,
-          image_url: data.image_url
+          name: data.name
         }
         await plantService.update(data.id, new_data);
         toastMessage("Planta actualizada", "success");

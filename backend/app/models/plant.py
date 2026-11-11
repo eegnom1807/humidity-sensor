@@ -11,7 +11,9 @@ class Plant(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    image_url = db.Column(db.String(255))
+    # frontend expects "" (not null) when there is no image;
+    # only changed by POST /plants/<id>/image
+    image_url = db.Column(db.String(255), default="")
     active = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(
         db.DateTime,

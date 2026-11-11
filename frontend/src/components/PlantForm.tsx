@@ -28,7 +28,6 @@ export function PlantForm({ open, onOpenChange, plant, onSubmit }: PlantFormProp
     const formData = new FormData(e.currentTarget)
     const data: PlantRequest = {
       name: formData.get("name") as string,
-      image_url: "",
     }
     if (isEditing && plant) {
       data.id = plant.id
