@@ -12,18 +12,6 @@ class ApiError(Exception):
         self.status_code = status_code
 
 
-def handle_db_error(e):
-    error_msg = str(e.orig).lower()
-
-    if "unique" in error_msg:
-        return {"message": "Resource already exists"}, 409
-
-    if "foreign key" in error_msg:
-        return {"message": "Invalid reference"}, 400
-
-    return {"message": "Integrity error"}, 400
-
-
 def register_error_handlers(app):
     # errors raised by the app itself
     @app.errorhandler(ApiError)
@@ -39,7 +27,21 @@ def register_error_handlers(app):
     @app.errorhandler(IntegrityError)
     def integrity_error(e):
         db.session.rollback()
-        return handle_db_error(e)
+        error_msg = str(e.orig).lower()
+
+        if "unique" in error_msg:
+            return {"message": "Resource already exists"}, 409
+
+        if "foreign key" in error_msg:
+            return {"message": "Invalid reference"}, 400
+
+        return {"message": "Integrity error"}, 400
+
+    # 413: uploaded file bigger than MAX_CONTENT_LENGTH
+    @app.errorhandler(413)
+    def file_too_large(e):
+        max_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
+        return {"message": f"File too large. Max size is {max_mb}MB"}, 413
 
     # any other HTTP error (404, 405, ...) as JSON instead of HTML
     @app.errorhandler(HTTPException)
