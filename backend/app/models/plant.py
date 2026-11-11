@@ -35,7 +35,3 @@ class Plant(db.Model):
     @classmethod
     def get_all(cls):
         return cls.query.all()
-
-    @classmethod
-    def get_by_id(cls, id):
-        return db.session.get(cls, id)

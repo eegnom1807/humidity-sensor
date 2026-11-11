@@ -25,7 +25,7 @@ def create_app():
     # global error handlers, always JSON (see errors.py)
     register_error_handlers(app)
 
-    #initialize DB and migrations
+    # initialize DB and migrations
     db.init_app(app)
     migrate.init_app(app, db)
 

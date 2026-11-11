@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields, validate, validates, ValidationError
 from ..models.plant import Plant
 from ..utils import get_date
+from ..db import db
 
 
 class SensorSchema(Schema):
@@ -17,7 +18,7 @@ class SensorSchema(Schema):
 
     @validates("plant_id")
     def validate_plant_exists(self, value, **kwargs):
-        if not Plant.get_by_id(value):
+        if db.session.get(Plant, value) is None:
             raise ValidationError("Plant does not exist")
 
 sensor_schema = SensorSchema()
