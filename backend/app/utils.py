@@ -1,10 +1,13 @@
+import hmac
 import os
 from flask import request, current_app
 from werkzeug.security import safe_join
 from datetime import timezone, timedelta
 from functools import wraps
-from ..db import db
-from ..errors import ApiError
+from .db import db
+from .errors import ApiError
+
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 
 
 def get_date(date):
@@ -16,8 +19,6 @@ def get_date(date):
     return new_date.strftime("%Y-%m-%d %H:%M:%S")
 
 def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
-    
     return (
         "." in filename and
         filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -39,12 +40,14 @@ def delete_file_if_exists(relative_path):
 def require_api_key(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        api_key = request.headers.get("X-API-KEY")
-        if not api_key or api_key != os.getenv("API_KEY"):
+        api_key = request.headers.get("X-API-KEY", "")
+        expected_key = os.getenv("API_KEY", "")
+        # compare_digest takes the same time whether the key matches or not
+        if not expected_key or not hmac.compare_digest(api_key, expected_key):
             raise ApiError("Invalid API key", 401)
-        
+
         return f(*args, **kwargs)
-    
+
     return wrapper
 
 def load_json(schema):

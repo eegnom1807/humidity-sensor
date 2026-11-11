@@ -1,10 +1,9 @@
-from ..extensions import ma
-from marshmallow import fields, validate, validates, ValidationError
+from marshmallow import Schema, fields, validate, validates, ValidationError
 from ..models.plant import Plant
 from ..utils import get_date
 
 
-class SensorSchema(ma.Schema):
+class SensorSchema(Schema):
     id = fields.Int(dump_only=True)
     pin = fields.Str(
         required=True,

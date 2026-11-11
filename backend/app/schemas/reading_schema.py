@@ -1,8 +1,7 @@
-from ..extensions import ma
-from marshmallow import fields, validate
+from marshmallow import Schema, fields, validate
 
 
-class ReadingSchema(ma.Schema):
+class ReadingSchema(Schema):
     pin = fields.Str(
         required=True,
         validate=validate.Length(min=2, max=10)

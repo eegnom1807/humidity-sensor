@@ -1,10 +1,9 @@
-from ..extensions import ma
-from marshmallow import fields
+from marshmallow import Schema, fields
 from ..utils import get_date
 
 
-class DashboardSchema(ma.Schema):
-    id = fields.Int(dump_only=True)
+class DashboardSchema(Schema):
+    id = fields.Int()
     name = fields.Str()
     image_url = fields.Str()
     active = fields.Bool()

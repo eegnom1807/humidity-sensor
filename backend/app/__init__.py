@@ -4,7 +4,6 @@ from .errors import register_error_handlers
 from .routes import register_routes
 from . import models
 from flask_cors import CORS
-from .extensions import ma
 import os
 
 
@@ -23,19 +22,12 @@ def create_app():
     max_mb = int(os.getenv("MAX_CONTENT_LENGTH_MB", 5))
     app.config["MAX_CONTENT_LENGTH"] = max_mb * 1024 * 1024
 
-    @app.errorhandler(413)
-    def file_too_large(e):
-        return {"message": f"File too large. Max size is {max_mb}MB"}, 413
-
     # global error handlers, always JSON (see errors.py)
     register_error_handlers(app)
 
     #initialize DB and migrations
     db.init_app(app)
     migrate.init_app(app, db)
-
-    #init Marshmallow for validation
-    ma.init_app(app)
 
     # cors config
     origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
