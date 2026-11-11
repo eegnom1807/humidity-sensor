@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask
 from .db import db, migrate
 from .errors import register_error_handlers
 from .routes import register_routes
@@ -35,13 +35,5 @@ def create_app():
 
     # register routes
     register_routes(app, os.getenv("API_PREFIX", "/api/v1"))
-
-    # serves uploaded files
-    @app.route("/uploads/<path:filename>")
-    def uploaded_files(filename):
-        return send_from_directory(
-            app.config["UPLOAD_FOLDER"],
-            filename
-        )
 
     return app
