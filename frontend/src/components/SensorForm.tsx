@@ -19,12 +19,13 @@ interface SensorFormProps {
   onSubmit?: (data: SensorRequest) => Promise<void>
   plants: Plant[]
   usedPins: string[]
+  usedPlantIds: number[]
 }
 
 // Arduino UNO R4 WiFi analog pins
 const ANALOG_PINS = ["A0", "A1", "A2", "A3", "A4", "A5"]
 
-export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants, usedPins }: SensorFormProps) {
+export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants, usedPins, usedPlantIds }: SensorFormProps) {
   const isEditing = !!sensor
   const [submitting, setSubmitting] = useState(false)
 
@@ -91,7 +92,11 @@ export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants, usedP
               >
                 <option value="">Seleccionar planta</option>
                 {plants.map((plant) => (
-                  <option key={plant.id} value={plant.id}>
+                  <option
+                    key={plant.id}
+                    value={plant.id}
+                    disabled={usedPlantIds.includes(plant.id) && plant.id !== sensor?.plant_id}
+                  >
                     {plant.name}
                   </option>
                 ))}

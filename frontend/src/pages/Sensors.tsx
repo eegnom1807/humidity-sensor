@@ -182,6 +182,7 @@ export function Sensors() {
         onSubmit={handleFormSubmit}
         plants={plants}
         usedPins={sensors.map((s) => s.pin)}
+        usedPlantIds={sensors.map((s) => s.plant_id)}
       />
 
       <ConfirmDialog
