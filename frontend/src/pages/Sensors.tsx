@@ -13,8 +13,8 @@ import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { SensorForm } from "@/components/SensorForm"
 import type { Sensor, SensorRequest } from "@/types/sensor"
 import type { Plant } from "@/types/plant"
-import sensorService from "@/services/sensorService"
-import plantService from "@/services/plantService";
+import { sensorService } from "@/services/sensorService"
+import { plantService } from "@/services/plantService"
 import { toast } from "sonner"
 import { getApiErrorMessage } from "@/lib/utils"
 
@@ -33,13 +33,7 @@ export function Sensors() {
         setSensors(response);
         setErrorSensors('');
       })
-      .catch((error) => {
-        if (error instanceof Error) {
-          const errorMsg = `Error al cargar los sensores: ${error.message}`;
-          console.error(errorMsg);
-          setErrorSensors(errorMsg);
-        }
-      })
+      .catch((error) => setErrorSensors(getApiErrorMessage(error, "Error al cargar los sensores")))
   }
 
   const getAllPlants = () => {
@@ -48,13 +42,7 @@ export function Sensors() {
         setPlants(response);
         setErrorPlants('');
       })
-      .catch((error) => {
-        if (error instanceof Error) {
-          const errorMsg = `Error al cargar las plantas: ${error.message}`;
-          console.error(errorMsg);
-          setErrorPlants(errorMsg);
-        }
-      })
+      .catch((error) => setErrorPlants(getApiErrorMessage(error, "Error al cargar las plantas")))
   };
 
   useEffect(() => {
@@ -164,7 +152,7 @@ export function Sensors() {
                 </TableCell>
               </TableRow>
             ))}
-            {sensors.length === 0 && (
+            {sensors.length === 0 && !errorSensors && (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
                   No hay sensores registrados.

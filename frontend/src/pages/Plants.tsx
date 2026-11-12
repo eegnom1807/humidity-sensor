@@ -13,7 +13,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { PlantForm } from "@/components/PlantForm"
 import { toast } from "sonner"
 import type { Plant, PlantRequest } from "@/types/plant"
-import plantService from "@/services/plantService";
+import { plantService } from "@/services/plantService"
 import { getApiErrorMessage } from "@/lib/utils"
 
 export function Plants() {
@@ -29,13 +29,7 @@ export function Plants() {
         setPlants(response);
         setError('');
       })
-      .catch((error) => {
-        if (error instanceof Error) {
-          const errorMsg = `Error al cargar las plantas: ${error.message}`;
-          console.error(errorMsg);
-          setError(errorMsg);
-        }
-      })
+      .catch((error) => setError(getApiErrorMessage(error, "Error al cargar las plantas")))
   }
 
   useEffect(() => {
@@ -164,7 +158,7 @@ export function Plants() {
                 </TableCell>
               </TableRow>
             ))}
-            {plants.length === 0 && (
+            {plants.length === 0 && !error && (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
                   No hay plantas registradas.

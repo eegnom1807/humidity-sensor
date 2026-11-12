@@ -1,4 +1,4 @@
-import api, { API_ORIGIN } from "./api"
+import { api, API_ORIGIN } from "./api"
 import type { ApiResponse } from "@/types/api"
 import type { Plant, PlantRequest, DashboardPlant } from "@/types/plant"
 
@@ -48,5 +48,3 @@ export const plantService = {
     return (image_url !== "") ? API_ORIGIN + image_url : "/plant-placeholder.svg";
   } 
 }
-
-export default plantService

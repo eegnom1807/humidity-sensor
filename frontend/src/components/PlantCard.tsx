@@ -2,7 +2,7 @@ import { Droplets, CalendarDays, Circle } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { DashboardPlant } from "@/types/plant"
-import plantService from "@/services/plantService"
+import { plantService } from "@/services/plantService"
 
 interface PlantCardProps {
   plant: DashboardPlant
