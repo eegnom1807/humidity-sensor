@@ -9,11 +9,3 @@ export interface SensorRequest {
   pin: string
   plant_id: number
 }
-
-export interface SensorsResponse {
-  data: Sensor[]
-}
-
-export interface SensorResponse {
-  data: Sensor
-}

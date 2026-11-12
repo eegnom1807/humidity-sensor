@@ -7,11 +7,6 @@ export interface Plant {
 }
 
 export interface PlantRequest {
-  id?: number;
-  name: string;
-}
-
-export interface PlantRequestUpdate {
   name: string;
 }
 
@@ -23,16 +18,4 @@ export interface DashboardPlant {
   humidity: number | null;
   pin: string;
   last_reading: string;
-}
-
-export interface PlantsResponse {
-  data: Plant[];
-}
-
-export interface DashboardPlantsResponse {
-  data: DashboardPlant[];
-}
-
-export interface PlantResponse {
-  data: Plant;
 }

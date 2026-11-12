@@ -17,7 +17,7 @@ interface SensorFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   sensor?: Sensor | null
-  onSubmit?: (data: SensorRequest, edit: boolean) => Promise<void>
+  onSubmit?: (data: SensorRequest) => Promise<void>
   plants: Plant[]
 }
 
@@ -35,7 +35,7 @@ export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants }: Sen
 
     setSubmitting(true)
     try {
-      await onSubmit?.(data, isEditing)
+      await onSubmit?.(data)
     } finally {
       setSubmitting(false)
     }

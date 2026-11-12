@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/table"
 import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { PlantForm } from "@/components/PlantForm"
-import type { Plant, PlantRequest, PlantRequestUpdate } from "@/types/plant"
+import { toast } from "sonner"
+import type { Plant, PlantRequest } from "@/types/plant"
 import plantService from "@/services/plantService";
-import { getApiErrorMessage, toastMessage } from "@/lib/utils"
+import { getApiErrorMessage } from "@/lib/utils"
 
 export function Plants() {
   const [formOpen, setFormOpen] = useState(false)
@@ -56,24 +57,21 @@ export function Plants() {
     setDeleteDialogOpen(true)
   }
 
-  const handleFormSubmit = async (data: PlantRequest, edit: boolean, image?: File) => {
-    let plantId = data.id;
+  const handleFormSubmit = async (data: PlantRequest, image?: File) => {
+    let plantId = selectedPlant?.id;
 
     try {
-      if (!edit) {
+      if (selectedPlant) {
+        await plantService.update(selectedPlant.id, data);
+        toast.success("Planta actualizada");
+      } else {
         const plant = await plantService.create(data);
         plantId = plant.id;
-        toastMessage("Planta creada", "success");
-      } else if (data.id) {
-        const new_data: PlantRequestUpdate = {
-          name: data.name
-        }
-        await plantService.update(data.id, new_data);
-        toastMessage("Planta actualizada", "success");
+        toast.success("Planta creada");
       }
     } catch (error) {
-      const fallback = edit ? "Error al actualizar la planta" : "Error al crear la planta";
-      toastMessage(getApiErrorMessage(error, fallback), "error");
+      const fallback = selectedPlant ? "Error al actualizar la planta" : "Error al crear la planta";
+      toast.error(getApiErrorMessage(error, fallback));
       return;
     }
 
@@ -84,7 +82,7 @@ export function Plants() {
         await plantService.uploadImage(plantId, formData);
       } catch (error) {
         const reason = getApiErrorMessage(error, "Error al subir la imagen");
-        toastMessage(`La planta se guardó, pero falta la imagen: ${reason}`, "error");
+        toast.error(`La planta se guardó, pero falta la imagen: ${reason}`);
       }
     }
 
@@ -97,10 +95,10 @@ export function Plants() {
 
     try {
       await plantService.delete(selectedPlant.id);
-      toastMessage("Planta eliminada", "success");
+      toast.success("Planta eliminada");
       getAllPlants();
     } catch (error) {
-      toastMessage(getApiErrorMessage(error, "Error al eliminar la planta"), "error");
+      toast.error(getApiErrorMessage(error, "Error al eliminar la planta"));
     }
 
     setDeleteDialogOpen(false)

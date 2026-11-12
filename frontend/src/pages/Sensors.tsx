@@ -15,7 +15,8 @@ import type { Sensor, SensorRequest } from "@/types/sensor"
 import type { Plant } from "@/types/plant"
 import sensorService from "@/services/sensorService"
 import plantService from "@/services/plantService";
-import { getApiErrorMessage, toastMessage } from "@/lib/utils"
+import { toast } from "sonner"
+import { getApiErrorMessage } from "@/lib/utils"
 
 export function Sensors() {
   const [formOpen, setFormOpen] = useState(false)
@@ -81,21 +82,21 @@ export function Sensors() {
     setDeleteDialogOpen(true)
   }
 
-  const handleFormSubmit = async (data: SensorRequest, edit: boolean) => {
+  const handleFormSubmit = async (data: SensorRequest) => {
     try {
-      if (!edit) {
-        await sensorService.create(data)
-        toastMessage("Sensor creado", "success");
-      } else if (selectedSensor) {
+      if (selectedSensor) {
         await sensorService.update(selectedSensor.id, data)
-        toastMessage("Sensor actualizado", "success");
+        toast.success("Sensor actualizado");
+      } else {
+        await sensorService.create(data)
+        toast.success("Sensor creado");
       }
 
       setFormOpen(false)
       getAllSensors()
     } catch (error) {
-      const fallback = edit ? "Error al actualizar el sensor" : "Error al crear el sensor";
-      toastMessage(getApiErrorMessage(error, fallback), "error");
+      const fallback = selectedSensor ? "Error al actualizar el sensor" : "Error al crear el sensor";
+      toast.error(getApiErrorMessage(error, fallback));
     }
   }
 
@@ -104,10 +105,10 @@ export function Sensors() {
 
     try {
       await sensorService.delete(selectedSensor.id)
-      toastMessage("Sensor eliminado", "success");
+      toast.success("Sensor eliminado");
       getAllSensors()
     } catch (error) {
-      toastMessage(getApiErrorMessage(error, "Error al eliminar el sensor"), "error");
+      toast.error(getApiErrorMessage(error, "Error al eliminar el sensor"));
     }
 
     setDeleteDialogOpen(false)
