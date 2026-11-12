@@ -38,10 +38,10 @@ export const plantService = {
   },
 
   // upload image plant
-  uploadImage: async (id: number, formData: FormData): Promise<void> => {
-    await api.post(`/plants/${id}/image`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
+  uploadImage: async (id: number, image: File): Promise<void> => {
+    const formData = new FormData()
+    formData.append("image_url", image)
+    await api.post(`/plants/${id}/image`, formData)
   },
 
   getImage: (image_url: string): string => {

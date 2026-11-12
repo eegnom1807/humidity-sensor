@@ -77,9 +77,7 @@ export function Plants() {
 
     if (image && plantId) {
       try {
-        const formData = new FormData()
-        formData.append("image_url", image);
-        await plantService.uploadImage(plantId, formData);
+        await plantService.uploadImage(plantId, image);
       } catch (error) {
         const reason = getApiErrorMessage(error, "Error al subir la imagen");
         toast.error(`La planta se guardó, pero falta la imagen: ${reason}`);
