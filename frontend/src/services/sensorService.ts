@@ -1,19 +1,20 @@
-import api from "./api"
-import type { Sensor, SensorRequest, SensorResponse, SensorsResponse } from "@/types/sensor"
+import { api } from "./api"
+import type { ApiResponse } from "@/types/api"
+import type { Sensor, SensorRequest } from "@/types/sensor"
 
 export const sensorService = {
   getAll: async (): Promise<Sensor[]> => {
-    const response = await api.get<SensorsResponse>("/sensors")
+    const response = await api.get<ApiResponse<Sensor[]>>("/sensors")
     return response.data.data
   },
 
   create: async (data: SensorRequest): Promise<Sensor> => {
-    const response = await api.post<SensorResponse>("/sensors", data)
+    const response = await api.post<ApiResponse<Sensor>>("/sensors", data)
     return response.data.data
   },
 
   update: async (id: number, data: SensorRequest): Promise<Sensor> => {
-    const response = await api.put<SensorResponse>(`/sensors/${id}`, data)
+    const response = await api.put<ApiResponse<Sensor>>(`/sensors/${id}`, data)
     return response.data.data
   },
 
@@ -21,5 +22,3 @@ export const sensorService = {
     await api.delete(`/sensors/${id}`)
   },
 }
-
-export default sensorService

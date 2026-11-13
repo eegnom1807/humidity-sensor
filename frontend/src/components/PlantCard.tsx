@@ -2,7 +2,7 @@ import { Droplets, CalendarDays, Circle } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import type { DashboardPlant } from "@/types/plant"
-import plantService from "@/services/plantService"
+import { plantService } from "@/services/plantService"
 
 interface PlantCardProps {
   plant: DashboardPlant
@@ -44,7 +44,7 @@ export function PlantCard({ plant, onWater }: PlantCardProps) {
         <Button
           className="w-full"
           disabled={!hasReadings}
-          onClick={() => onWater?.(plant.pin)}
+          onClick={() => plant.pin && onWater?.(plant.pin)}
         >
           <Droplets className="mr-2 h-4 w-4" />
           Regar Planta

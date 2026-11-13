@@ -1,39 +1,31 @@
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
+import { getApiErrorMessage } from "@/lib/utils"
 import { Leaf } from "lucide-react"
 import { PlantCard } from "@/components/PlantCard"
 import type { DashboardPlant } from "@/types/plant"
-import plantService from "@/services/plantService"
+import { plantService } from "@/services/plantService"
 
 export function Dashboard() {
   const [plants, setPlants] = useState<DashboardPlant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('');
 
-  const loadDashboard = useCallback(() => {
-    return plantService.getDashboard()
-      .then((data) => {
-        setPlants(data);
-        setError('');
-      })
-      .catch((error) => {
-        if (error instanceof Error) {
-          const errorMsg = `Error al cargar el dashboard: ${error.message}`;
-          console.error(errorMsg);
-          setError(errorMsg);
-        }
-      })
-      .finally(() => setLoading(false))
-  }, [])
-
   useEffect(() => {
-    loadDashboard()
+    const loadDashboard = () => {
+      plantService.getDashboard()
+        .then((data) => {
+          setPlants(data);
+          setError('');
+        })
+        .catch((error) => setError(getApiErrorMessage(error, "Error al cargar el dashboard")))
+        .finally(() => setLoading(false))
+    }
 
-    const interval = setInterval(() => {
-      loadDashboard()
-    }, 10000)
+    loadDashboard()
+    const interval = setInterval(loadDashboard, 10000)
 
     return () => clearInterval(interval)
-  }, [loadDashboard])
+  }, [])
 
   const handleWater = (pin: string) => {
     console.log("make http request to arduino! ", pin);

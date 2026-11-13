@@ -3,13 +3,13 @@ from ..models.plant import Plant
 from ..utils import get_date
 from ..db import db
 
+# Arduino UNO R4 WiFi analog pins
+ANALOG_PINS = [f"A{i}" for i in range(6)]
+
 
 class SensorSchema(Schema):
     id = fields.Int(dump_only=True)
-    pin = fields.Str(
-        required=True,
-        validate=validate.Length(min=2, max=10)
-    )
+    pin = fields.Str(required=True, validate=validate.OneOf(ANALOG_PINS))
     plant_id = fields.Int(required=True)
     updated_at = fields.Method("format_updated_at")
 

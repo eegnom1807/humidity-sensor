@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Dialog,
@@ -17,11 +16,16 @@ interface SensorFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   sensor?: Sensor | null
-  onSubmit?: (data: SensorRequest, edit: boolean) => Promise<void>
+  onSubmit?: (data: SensorRequest) => Promise<void>
   plants: Plant[]
+  usedPins: string[]
+  usedPlantIds: number[]
 }
 
-export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants }: SensorFormProps) {
+// Arduino UNO R4 WiFi analog pins
+const ANALOG_PINS = ["A0", "A1", "A2", "A3", "A4", "A5"]
+
+export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants, usedPins, usedPlantIds }: SensorFormProps) {
   const isEditing = !!sensor
   const [submitting, setSubmitting] = useState(false)
 
@@ -35,7 +39,7 @@ export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants }: Sen
 
     setSubmitting(true)
     try {
-      await onSubmit?.(data, isEditing)
+      await onSubmit?.(data)
     } finally {
       setSubmitting(false)
     }
@@ -58,13 +62,24 @@ export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants }: Sen
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="pin">Pin</Label>
-              <Input
+              <select
                 id="pin"
                 name="pin"
-                placeholder="Ej: A0"
                 defaultValue={sensor?.pin ?? ""}
                 required
-              />
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">Seleccionar pin</option>
+                {ANALOG_PINS.map((pin) => (
+                  <option
+                    key={pin}
+                    value={pin}
+                    disabled={usedPins.includes(pin) && pin !== sensor?.pin}
+                  >
+                    {pin}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="plant_id">Planta</Label>
@@ -77,7 +92,11 @@ export function SensorForm({ open, onOpenChange, sensor, onSubmit, plants }: Sen
               >
                 <option value="">Seleccionar planta</option>
                 {plants.map((plant) => (
-                  <option key={plant.id} value={plant.id}>
+                  <option
+                    key={plant.id}
+                    value={plant.id}
+                    disabled={usedPlantIds.includes(plant.id) && plant.id !== sensor?.plant_id}
+                  >
                     {plant.name}
                   </option>
                 ))}

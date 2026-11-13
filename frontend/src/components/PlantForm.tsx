@@ -16,7 +16,7 @@ interface PlantFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   plant?: Plant | null
-  onSubmit?: (data: PlantRequest, edit: boolean, image?: File) => Promise<void>
+  onSubmit?: (data: PlantRequest, image?: File) => Promise<void>
 }
 
 export function PlantForm({ open, onOpenChange, plant, onSubmit }: PlantFormProps) {
@@ -29,14 +29,11 @@ export function PlantForm({ open, onOpenChange, plant, onSubmit }: PlantFormProp
     const data: PlantRequest = {
       name: formData.get("name") as string,
     }
-    if (isEditing && plant) {
-      data.id = plant.id
-    }
     const imageFile = formData.get("image_url") as File | null
 
     setSubmitting(true)
     try {
-      await onSubmit?.(data, isEditing, imageFile && imageFile.size > 0 ? imageFile : undefined)
+      await onSubmit?.(data, imageFile && imageFile.size > 0 ? imageFile : undefined)
     } finally {
       setSubmitting(false)
     }
