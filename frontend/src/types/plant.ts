@@ -16,6 +16,6 @@ export interface DashboardPlant {
   image_url: string;
   active: boolean;
   humidity: number | null;
-  pin: string;
+  pin: string | null;
   last_reading: string;
 }
